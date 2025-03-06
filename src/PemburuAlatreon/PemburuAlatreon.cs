@@ -30,20 +30,20 @@ public class PemburuAlatreon : Bot{
 
     public override void OnScannedBot(ScannedBotEvent e){
         // ====================== Lock On==================== //
-        double gunbearing = GunBearingTo(e.X, e.Y);
+        double gunbearing = GunBearingTo(e.X, e.Y); // Menghitung sudut antara gun dengan posisi bot musuh
 
         if (gunbearing > 0){
-            SetTurnGunLeft(gunbearing);
+            SetTurnGunLeft(gunbearing); // Memutar gun sejauh gunbearing 
         }else{
-            SetTurnGunRight(-gunbearing);
+            SetTurnGunRight(-gunbearing); // Memutar gun sejauh gunbearing 
         }
         
-        double radarbearing = RadarBearingTo(e.X, e.Y);
+        double radarbearing = RadarBearingTo(e.X, e.Y); // Menghitung sudut antara radar dengan posisi bot musuh
 
         if (radarbearing > 0){
-            SetTurnRadarLeft(radarbearing);
+            SetTurnRadarLeft(radarbearing); // Memutar radar sejauh radarbearing 
         }else{
-            SetTurnRadarRight(-radarbearing);
+            SetTurnRadarRight(-radarbearing); // Memutar radar sejauh radarbearing
         }
 
         SetFire(1);
