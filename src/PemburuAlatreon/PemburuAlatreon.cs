@@ -12,19 +12,43 @@ public class PemburuAlatreon : Bot{
     PemburuAlatreon() : base(BotInfo.FromFile("PemburuAlatreon.json")) { }
 
     public override void Run(){
+        AdjustGunForBodyTurn = true; // Gun bebas dengan pergerakan body
+        AdjustRadarForBodyTurn = true; // Radar bebas dengan pergerakan body
+        AdjustRadarForGunTurn = true; // Radar bebas dengan pergerakan gun
+
         /* Customize bot colors, read the documentation for more information */
         BodyColor = Color.Gray;
 
         while (IsRunning){
+            SetForward(100);
+            SetTurnLeft(20);
             SetTurnRadarLeft(360); 
-            SetTurnGunLeft(360);
             Go();
 
         }
     }
 
     public override void OnScannedBot(ScannedBotEvent e){
-        double turngun = normalizeAngle()
+        // ====================== Lock On==================== //
+        double gunbearing = GunBearingTo(e.ScannedX, e.ScannedY);
+
+        if (gunbearing > 0){
+            SetTurnGunLeft(gunbearing);
+        }else{
+            SetTurnGunLeft(-gunbearing);
+        }
+        
+        double radarbearing = RadarBearingTo(e.ScannedX, e.ScannedY);
+
+        if (radarbearing > 0){
+            SetTurnRadarLeft(radarbearing);
+        }else{
+            SetTurnRadarLeft(-radarbearing);
+        }
+
+        SetFire(1);
+        // ====================================================== //
+        Go();
     }
 
     private double normalizeAngle(double angle){
