@@ -30,20 +30,20 @@ public class PemburuAlatreon : Bot{
 
     public override void OnScannedBot(ScannedBotEvent e){
         // ====================== Lock On==================== //
-        double gunbearing = GunBearingTo(e.ScannedX, e.ScannedY);
+        double gunbearing = GunBearingTo(e.X, e.Y);
 
         if (gunbearing > 0){
             SetTurnGunLeft(gunbearing);
         }else{
-            SetTurnGunLeft(-gunbearing);
+            SetTurnGunRight(-gunbearing);
         }
         
-        double radarbearing = RadarBearingTo(e.ScannedX, e.ScannedY);
+        double radarbearing = RadarBearingTo(e.X, e.Y);
 
         if (radarbearing > 0){
             SetTurnRadarLeft(radarbearing);
         }else{
-            SetTurnRadarLeft(-radarbearing);
+            SetTurnRadarRight(-radarbearing);
         }
 
         SetFire(1);
