@@ -1,8 +1,8 @@
 {
-  "name": "Template Bot",
+  "name": "Pemburu Alatreon",
   "version": "1.0",
-  "authors": ["IRK Lab Assistant"],
-  "description": "A bot that drives forward and backward, and fires a bullet",
+  "authors": ["Muhammad Aulia Azka"],
+  "description": "A Mechanical Weapon that design to kill Alatreon",
   "homepage": "",
   "countryCodes": ["id"],
   "platform": ".Net 6.0",
