@@ -29,7 +29,7 @@ public class PemburuAlatreon : Bot{
     }
 
     public override void OnScannedBot(ScannedBotEvent e){
-        double distance = e.GetDistance();
+        double distance = DistanceTo(e.X, e.Y);
         // ====================== Lock On==================== //
         double gunbearing = GunBearingTo(e.X, e.Y); // Menghitung sudut antara gun dengan posisi bot musuh
 
@@ -49,13 +49,25 @@ public class PemburuAlatreon : Bot{
 
         // ====================================================== //
 
-        if (distance)
-        SetFire(1);
+        // ====================== Gun Modifier ==================== //
+        if (distance < 200){
+            SetFire(3);
+        }else if (distance < 500){
+            SetFire(2);
+        }else if (distance < 800){
+            SetFire(1);
+        }
         Go();
     }
 
     public override void OnHitBot(HitBotEvent e){
-        Console.WriteLine("Ouch! I hit a bot at " + e.X + ", " + e.Y);
+        SetTurnRight(90);
+        SetBack(100);
+        Go();
+    }
+
+    public virtual void OnHitByBullet(HitByBulletEvent bulletHitBotEvent){
+        
     }
 
     public override void OnHitWall(HitWallEvent e){
