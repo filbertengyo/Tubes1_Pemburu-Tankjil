@@ -29,6 +29,7 @@ public class PemburuAlatreon : Bot{
     }
 
     public override void OnScannedBot(ScannedBotEvent e){
+        double distance = e.GetDistance();
         // ====================== Lock On==================== //
         double gunbearing = GunBearingTo(e.X, e.Y); // Menghitung sudut antara gun dengan posisi bot musuh
 
@@ -46,19 +47,11 @@ public class PemburuAlatreon : Bot{
             SetTurnRadarRight(-radarbearing); // Memutar radar sejauh radarbearing
         }
 
-        SetFire(1);
         // ====================================================== //
-        Go();
-    }
 
-    private double normalizeAngle(double angle){
-        double normalize = angle % 360;
-        if (normalize > 180){
-            normalize -= 360;
-        }else if (normalize <= -360){
-            normalize += 360;
-        }
-        return normalize;
+        if (distance)
+        SetFire(1);
+        Go();
     }
 
     public override void OnHitBot(HitBotEvent e){
