@@ -123,4 +123,24 @@ public class PemburuAlatreon : Bot{
         var Closest = validEnemy.OrderBy(enemies => e.distance).FirstOrDefault();
         return Closest;
     }
+
+    private void aimRadarandGun(EnemyInfo target){
+        double gunbearing = GunBearingTo(target.x, target.y);
+
+        if (gunbearing > 0){
+            SetTurnGunLeft(gunbearing); // Memutar gun sejauh gunbearing 
+        }else{
+            SetTurnGunRight(-gunbearing); // Memutar gun sejauh gunbearing 
+        }
+        
+        double radarbearing = RadarBearingTo(target.x, target.y); // Menghitung sudut antara radar dengan posisi bot musuh
+
+        if (radarbearing > 0){
+            SetTurnRadarLeft(radarbearing); // Memutar radar sejauh radarbearing 
+        }else{
+            SetTurnRadarRight(-radarbearing); // Memutar radar sejauh radarbearing
+        }
+    }
+
+    
 }
