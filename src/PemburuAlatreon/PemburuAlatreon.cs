@@ -1,5 +1,7 @@
 using System;
 using System.Drawing;
+using System.Drawing;
+using System.Linq;
 using Robocode.TankRoyale.BotApi;
 using Robocode.TankRoyale.BotApi.Events;
 
@@ -11,6 +13,15 @@ public class PemburuAlatreon : Bot{
 
     PemburuAlatreon() : base(BotInfo.FromFile("PemburuAlatreon.json")) { }
 
+    private class EnemyInfo{
+        public int id;
+        public double x;
+        public double y;
+        public double distance;
+        public double lastScan;
+    }
+
+    private Dictionary<int, EnemyInfo> enemies = new Dictionary<int, EnemyInfo>();
     public override void Run(){
         AdjustGunForBodyTurn = true; // Gun bebas dengan pergerakan body
         AdjustRadarForBodyTurn = true; // Radar bebas dengan pergerakan body
@@ -20,9 +31,9 @@ public class PemburuAlatreon : Bot{
         BodyColor = Color.Gray;
 
         while (IsRunning){
+            SetTurnRadarLeft(360); 
             SetForward(100);
             SetTurnLeft(20);
-            SetTurnRadarLeft(360); 
             Go();
 
         }
@@ -66,8 +77,10 @@ public class PemburuAlatreon : Bot{
         Go();
     }
 
-    public virtual void OnHitByBullet(HitByBulletEvent bulletHitBotEvent){
-        
+    public virtual void OnHitByBullet(HitByBulletEvent e){
+        SetTurnRight(-90);
+        SetForward(100);
+        Go();
     }
 
     public override void OnHitWall(HitWallEvent e){
