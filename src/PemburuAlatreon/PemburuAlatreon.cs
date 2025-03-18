@@ -88,4 +88,37 @@ public class PemburuAlatreon : Bot{
     }
 
     /* Read the documentation for more events and methods */
+
+    /* Healper Method */
+
+    private void UpdateEnemyInfo(ScannedBotEvent e){// Update info musuh
+        double dist = DistanceTo(e.X, e.Y);
+
+        if (!enemies.ContainsKey(e.ScannedBotID)){
+            enemies[e.ScannedBotID] = new EnemyInfo{
+                e.id = e.ScannedBotID,
+                x = e.X,
+                y = e.Y,
+                distance = dist,
+                lastScan = TurnNumber
+            };
+        }else {
+            var enemy = enemies[e.ScannedBotID];
+            enemy.x = e.X;
+            enemy.y = e.Y;
+            enemy.distance = dist;
+            enemy.lastScan = TurnNumber;
+        }
+    }
+
+    private EnemyInfo closestEnemy(){
+        if (enemies.Count == 0){
+            return null;
+        }
+
+        double maxTurn = 30;
+
+        var validEnemy = enemies.Values.Where(e)
+
+    }
 }
