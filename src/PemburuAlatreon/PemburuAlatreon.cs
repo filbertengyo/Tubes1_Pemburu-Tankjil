@@ -142,5 +142,18 @@ public class PemburuAlatreon : Bot{
         }
     }
 
-    
+    private void distanceFireGun(double distance){
+        double powerFire;
+        if (distance < 200){
+            powerFire = 3;
+        }else if (distance < 400){
+            powerFire = 2;
+        }else{
+            powerFire = 1
+        }
+
+        if (Energy > powerFire + 1){
+            setFire(powerFire);
+        }
+    }
 }
