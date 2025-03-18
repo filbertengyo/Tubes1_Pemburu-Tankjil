@@ -111,14 +111,16 @@ public class PemburuAlatreon : Bot{
         }
     }
 
-    private EnemyInfo closestEnemy(){
+    private EnemyInfo closestEnemy(){// Method untuk mengambil jarak terdekat bot musuh dengan player
         if (enemies.Count == 0){
             return null;
         }
-
         double maxTurn = 30;
-
-        var validEnemy = enemies.Values.Where(e)
-
+        var validEnemy = enemies.Values.Where( => TurnNumber - e.lastScan <= maxTurn).ToList();
+        if (validEnemy.Count == 0){
+            return null;
+        }
+        var Closest = validEnemy.OrderBy(enemies => e.distance).FirstOrDefault();
+        return Closest;
     }
 }
