@@ -1,7 +1,7 @@
 using System;
 using System.Drawing;
-using System.Drawing;
 using System.Linq;
+using System.Collections.Generic;
 using Robocode.TankRoyale.BotApi;
 using Robocode.TankRoyale.BotApi.Events;
 
@@ -40,34 +40,15 @@ public class PemburuAlatreon : Bot{
     }
 
     public override void OnScannedBot(ScannedBotEvent e){
-        double distance = DistanceTo(e.X, e.Y);
-        // ====================== Lock On==================== //
-        double gunbearing = GunBearingTo(e.X, e.Y); // Menghitung sudut antara gun dengan posisi bot musuh
+        UpdateEnemyInfo(e);
 
-        if (gunbearing > 0){
-            SetTurnGunLeft(gunbearing); // Memutar gun sejauh gunbearing 
-        }else{
-            SetTurnGunRight(-gunbearing); // Memutar gun sejauh gunbearing 
-        }
-        
-        double radarbearing = RadarBearingTo(e.X, e.Y); // Menghitung sudut antara radar dengan posisi bot musuh
-
-        if (radarbearing > 0){
-            SetTurnRadarLeft(radarbearing); // Memutar radar sejauh radarbearing 
-        }else{
-            SetTurnRadarRight(-radarbearing); // Memutar radar sejauh radarbearing
+        var targetBot = closestEnemy();
+        if (targetBot == null){
+            return;
         }
 
-        // ====================================================== //
-
-        // ====================== Gun Modifier ==================== //
-        if (distance < 200){
-            SetFire(3);
-        }else if (distance < 500){
-            SetFire(2);
-        }else if (distance < 800){
-            SetFire(1);
-        }
+        aimRadarandGun(targetBot);
+        distanceFireGun(targetBot.distance);
         Go();
     }
 
@@ -94,16 +75,16 @@ public class PemburuAlatreon : Bot{
     private void UpdateEnemyInfo(ScannedBotEvent e){// Update info musuh
         double dist = DistanceTo(e.X, e.Y);
 
-        if (!enemies.ContainsKey(e.ScannedBotID)){
-            enemies[e.ScannedBotID] = new EnemyInfo{
-                e.id = e.ScannedBotID,
+        if (!enemies.ContainsKey(e.ScannedBotId)){
+            enemies[e.ScannedBotId] = new EnemyInfo{
+                id = e.ScannedBotId,
                 x = e.X,
                 y = e.Y,
                 distance = dist,
                 lastScan = TurnNumber
             };
         }else {
-            var enemy = enemies[e.ScannedBotID];
+            var enemy = enemies[e.ScannedBotId];
             enemy.x = e.X;
             enemy.y = e.Y;
             enemy.distance = dist;
@@ -116,11 +97,11 @@ public class PemburuAlatreon : Bot{
             return null;
         }
         double maxTurn = 30;
-        var validEnemy = enemies.Values.Where( => TurnNumber - e.lastScan <= maxTurn).ToList();
+        var validEnemy = enemies.Values.Where(enemy => TurnNumber - enemy.lastScan <= maxTurn).ToList();
         if (validEnemy.Count == 0){
             return null;
         }
-        var Closest = validEnemy.OrderBy(enemies => e.distance).FirstOrDefault();
+        var Closest = validEnemy.OrderBy(enemy => enemy.distance).FirstOrDefault();
         return Closest;
     }
 
@@ -149,11 +130,11 @@ public class PemburuAlatreon : Bot{
         }else if (distance < 400){
             powerFire = 2;
         }else{
-            powerFire = 1
+            powerFire = 1;
         }
 
         if (Energy > powerFire + 1){
-            setFire(powerFire);
+            SetFire(powerFire);
         }
     }
 }
