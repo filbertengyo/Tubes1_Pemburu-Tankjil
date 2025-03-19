@@ -20,8 +20,10 @@ public class PemburuAlatreon : Bot{
         public double distance;
         public double lastScan;
     }
-
+    // Dictionary untuk menyimpan informasi bot musuh
     private Dictionary<int, EnemyInfo> enemies = new Dictionary<int, EnemyInfo>();
+    private Random randomMovement = new Random();
+    private int movementDirection = 1;
     public override void Run(){
         AdjustGunForBodyTurn = true; // Gun bebas dengan pergerakan body
         AdjustRadarForBodyTurn = true; // Radar bebas dengan pergerakan body
@@ -97,11 +99,12 @@ public class PemburuAlatreon : Bot{
             return null;
         }
         double maxTurn = 30;
-        var validEnemy = enemies.Values.Where(enemy => TurnNumber - enemy.lastScan <= maxTurn).ToList();
+        // mengambil enemy info yang valid dan mengonversi data tersebut menjadi list
+        var validEnemy = enemies.Values.Where(enemy => TurnNumber - enemy.lastScan <= maxTurn).ToList(); 
         if (validEnemy.Count == 0){
             return null;
         }
-        var Closest = validEnemy.OrderBy(enemy => enemy.distance).FirstOrDefault();
+        var Closest = validEnemy.OrderBy(enemy => enemy.distance).FirstOrDefault(); // mengurutkan musuh yang terdekat
         return Closest;
     }
 
@@ -115,11 +118,11 @@ public class PemburuAlatreon : Bot{
         }
         
         double radarbearing = RadarBearingTo(target.x, target.y); // Menghitung sudut antara radar dengan posisi bot musuh
-
+        double margin = 5;
         if (radarbearing > 0){
-            SetTurnRadarLeft(radarbearing); // Memutar radar sejauh radarbearing 
+            SetTurnRadarLeft(radarbearing + 5); // Memutar radar sejauh radarbearing 
         }else{
-            SetTurnRadarRight(-radarbearing); // Memutar radar sejauh radarbearing
+            SetTurnRadarRight(-radarbearing + 5); // Memutar radar sejauh radarbearing
         }
     }
 
@@ -136,5 +139,15 @@ public class PemburuAlatreon : Bot{
         if (Energy > powerFire + 1){
             SetFire(powerFire);
         }
+    }
+
+    private double normalizeRelativeAngle(double angle){
+        angle = angle % 360;
+        if (angle > 180){
+            angle -= 360;
+        }else if (angle > 180){
+            angle += 360;
+        }
+        return angle;
     }
 }
