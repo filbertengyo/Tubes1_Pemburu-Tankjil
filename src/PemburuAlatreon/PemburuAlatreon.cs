@@ -61,14 +61,15 @@ public class PemburuAlatreon : Bot{
     }
 
     public virtual void OnHitByBullet(HitByBulletEvent e){
-        SetTurnRight(-90);
-        SetForward(100);
+        SetTurnRight(45);
+        SetForward(150);
         Go();
     }
 
     public override void OnHitWall(HitWallEvent e){
-        SetTurnRight(45);
-        SetForward(150);
+        movementDirection *= -1;
+        SetTurnRight(90);
+        SetBack(100);
         Go();
     }
 
