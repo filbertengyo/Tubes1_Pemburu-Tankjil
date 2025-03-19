@@ -33,11 +33,28 @@ public class PemburuAlatreon : Bot{
         BodyColor = Color.Gray;
 
         while (IsRunning){
-            SetTurnRadarLeft(360); 
-            SetForward(100);
-            SetTurnLeft(20);
-            Go();
+            var target = closestEnemy();
 
+            if (target != null){// jika lagi target ke musuh
+                double enemyAngle = DirectionTo(target.x, target.y);
+                double headingTo = normalizeAbsoluteAngle(enemyAngle + (90 * movementDirection));
+                double turnAngle = normalizeRelativeAngle(headingTo - Heading);
+                if (turnAngle > 0){
+                    SetTurnLeft(turnAngle);
+                }else{
+                    SetTurnRight(-turnAngle);
+                }
+            }else{// jika tidak ada musuh
+                int randomTurn = randomMovement.Next(-30, 31);
+                if (randomTurn > 0){
+                    SetTurnLeft(randomTurn);
+                }else{
+                    SetTurnRight(-randomTurn);
+                }
+                Forward(50);
+            }
+            SetTurnRadarLeft(360); 
+            Go();
         }
     }
 
