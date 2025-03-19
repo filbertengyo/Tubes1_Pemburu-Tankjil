@@ -41,7 +41,8 @@ public class PemburuAlatreon : Bot{
                 if (target.distance < 150){
                     forwardDistance = -300;
                 }else{
-                    forwardDistance = 200;
+                    SetTurnRight(50);
+                    SetForward(100);
                 }
                 double headingTo = normalizeAbsoluteAngle(enemyAngle + (90 * movementDirection));
                 double turnAngle = normalizeRelativeAngle(headingTo - Direction);
