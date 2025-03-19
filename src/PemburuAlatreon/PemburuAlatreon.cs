@@ -150,4 +150,8 @@ public class PemburuAlatreon : Bot{
         }
         return angle;
     }
+
+    private double normalizeAbsoluteAngle(double angle){
+        return (angle % 360 + 360) % 360;
+    }
 }
