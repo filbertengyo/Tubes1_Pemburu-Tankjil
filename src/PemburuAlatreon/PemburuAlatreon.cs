@@ -67,7 +67,9 @@ public class PemburuAlatreon : Bot{
     }
 
     public override void OnHitWall(HitWallEvent e){
-        Console.WriteLine("Ouch! I hit a wall, must turn back!");
+        SetTurnRight(45);
+        SetForward(150);
+        Go();
     }
 
     /* Read the documentation for more events and methods */
