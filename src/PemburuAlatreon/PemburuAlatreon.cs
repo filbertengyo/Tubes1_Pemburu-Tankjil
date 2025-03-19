@@ -37,12 +37,24 @@ public class PemburuAlatreon : Bot{
 
             if (target != null){// jika lagi target ke musuh
                 double enemyAngle = DirectionTo(target.x, target.y);
+                double forwardDistance = 50;
+                if (target.distance < 150){
+                    forwardDistance = -300;
+                }else{
+                    forwardDistance = 200;
+                }
                 double headingTo = normalizeAbsoluteAngle(enemyAngle + (90 * movementDirection));
-                double turnAngle = normalizeRelativeAngle(headingTo - Heading);
+                double turnAngle = normalizeRelativeAngle(headingTo - Direction);
                 if (turnAngle > 0){
                     SetTurnLeft(turnAngle);
                 }else{
                     SetTurnRight(-turnAngle);
+                }
+
+                if (forwardDistance > 0){
+                    SetForward(forwardDistance);
+                }else{
+                    SetBack(-forwardDistance);
                 }
             }else{// jika tidak ada musuh
                 int randomTurn = randomMovement.Next(-30, 31);
@@ -51,7 +63,7 @@ public class PemburuAlatreon : Bot{
                 }else{
                     SetTurnRight(-randomTurn);
                 }
-                Forward(50);
+                SetForward(50);
             }
             SetTurnRadarLeft(360); 
             Go();
@@ -68,7 +80,7 @@ public class PemburuAlatreon : Bot{
 
         aimRadarandGun(targetBot);
         distanceFireGun(targetBot.distance);
-        Go();
+        
     }
 
     public override void OnHitBot(HitBotEvent e){
@@ -85,9 +97,9 @@ public class PemburuAlatreon : Bot{
 
     public override void OnHitWall(HitWallEvent e){
         movementDirection *= -1;
-        SetTurnRight(90);
-        SetBack(100);
-        Go();
+        TurnRight(90);
+        Back(100);
+        
     }
 
     /* Read the documentation for more events and methods */
@@ -165,7 +177,7 @@ public class PemburuAlatreon : Bot{
         angle = angle % 360;
         if (angle > 180){
             angle -= 360;
-        }else if (angle > 180){
+        }else if (angle < -180){
             angle += 360;
         }
         return angle;
