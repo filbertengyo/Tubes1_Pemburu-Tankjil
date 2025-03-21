@@ -39,10 +39,11 @@ public class PemburuAlatreon : Bot{
                 double enemyAngle = DirectionTo(target.x, target.y);
                 double forwardDistance = 50;
                 if (target.distance < 150){
-                    forwardDistance = -300;
+                    forwardDistance = -150;
+                }else if (target.distance < 400){
+                    forwardDistance = 150;
                 }else{
-                    SetTurnRight(50);
-                    SetForward(100);
+                    forwardDistance = 50;
                 }
                 double headingTo = normalizeAbsoluteAngle(enemyAngle + (90 * movementDirection));
                 double turnAngle = normalizeRelativeAngle(headingTo - Direction);
@@ -80,7 +81,11 @@ public class PemburuAlatreon : Bot{
         }
 
         aimRadarandGun(targetBot);
-        distanceFireGun(targetBot.distance);
+        double gunbearing = GunBearingTo(targetBot.x, targetBot.y);
+        if (Math.Abs(gunbearing) < 10){
+            distanceFireGun(targetBot.distance);
+
+        }
         
     }
 
