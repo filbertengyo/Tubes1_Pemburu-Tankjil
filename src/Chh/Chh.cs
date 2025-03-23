@@ -334,6 +334,8 @@ public class Chh : Bot
         // or create new bot data
         if (scannedBots.TryGetValue(evt.ScannedBotId, out BotData bd))
         {
+            bd.X = evt.X;
+            bd.Y = evt.Y;
             bd.lastEnergy = bd.currentEnergy;
             bd.currentEnergy = evt.Energy;
         }
