@@ -7,10 +7,6 @@ using Robocode.TankRoyale.BotApi.Events;
 
 public class Chh : Bot
 {
-    static void Main(string[] args)
-    {
-        new Chh().Start();
-    }
 
     public enum BotState
     {
@@ -22,7 +18,41 @@ public class Chh : Bot
 
     BotState botState = BotState.EVADE;
 
-    struct BotData
+    Random rand = new Random();
+    private Dictionary<int, BotData> scannedBots = new();
+    private int targetId = -1;
+    private int stuckCooldown = 0;
+    private int hitCooldown = 0;
+    private bool isMovingForward = true;
+
+    private class BotData
+    {
+        public int ID;
+        public int hitCount;
+        public int shotCount;
+        public double lastEnergy;
+        public double currentEnergy;
+        public double X;
+        public double Y;
+
+        public BotData()
+        {
+
+        }
+        public BotData(int ID, double lastEnergy, double currentEnergy, double X, double Y, int hitCount, int shotCount)
+        {
+            this.ID = ID;
+            this.lastEnergy = lastEnergy;
+            this.currentEnergy = currentEnergy;
+            this.X = X;
+            this.Y = Y;
+            this.hitCount = hitCount;
+            this.shotCount = shotCount;
+        }
+
+    }
+
+    struct sBotData
     {
         public int ID;
         public double lastEnergy;
@@ -32,22 +62,30 @@ public class Chh : Bot
         public int hitCount;
         public int shotCount;
     }
-    private Dictionary<int, BotData> scannedBots = new();
-    private int targetId = -1;
-    private int stuckCooldown = 0;
-    private int hitCooldown = 0;
-    bool isMovingForward = true;
 
     Chh() : base(BotInfo.FromFile("Chh.json")) { }
 
-    Random rand = new Random();
+    static void Main(string[] args)
+    {
+        new Chh().Start();
+    }
 
+    public override void OnRoundStarted(RoundStartedEvent evt)
+    {
+        scannedBots.Clear();
+        isMovingForward = true;
+        stuckCooldown = 0;
+        hitCooldown = 0;
+        targetId = -1;
+    }
     public override void Run()
     {
+        // Set properties
         AdjustRadarForBodyTurn = false;
         AdjustGunForBodyTurn = false;
         AdjustRadarForGunTurn = false;
 
+        // Set colors
         TurretColor = Color.Black;
         ScanColor = Color.White;
         BulletColor = Color.White;
@@ -56,24 +94,22 @@ public class Chh : Bot
         TracksColor = Color.Black;
         GunColor = Color.Black;
 
-        scannedBots.Clear();
-        isMovingForward = true;
-        stuckCooldown = 0;
-        targetId = -1;
-
+        // Main loop
         while (IsRunning)
         {
-            SetTurnRadarRight(45);
+            // Decrement cooldowns
             if (stuckCooldown > 0) stuckCooldown--;
             if (hitCooldown > 0) hitCooldown--;
+
             bool isNearWall = (X < 30 || X > ArenaWidth - 30 || Y < 30 || Y > ArenaHeight - 30);
-            // Console.WriteLine(botState);
+
+            SetTurnRadarRight(45);
             switch (botState)
             {
                 case BotState.BATTLE:
+
                     if (isNearWall)
                     {
-                        // Console.WriteLine("BALIK");
                         ReverseDirection(rand.Next(6, 24));
                     }
                     else
@@ -81,10 +117,9 @@ public class Chh : Bot
                         stuckCooldown = 0;
                     }
 
-
                     Rescan();
-                    BotData botData;
-                    if (scannedBots.TryGetValue(targetId, out botData))
+
+                    if (scannedBots.TryGetValue(targetId, out BotData botData))
                     {
                         SmartFire(botData);
                     }
@@ -97,7 +132,6 @@ public class Chh : Bot
                     else
                     {
                         SetForward(0);
-
                         SetBack(50);
                     }
                     break;
@@ -105,6 +139,7 @@ public class Chh : Bot
                 case BotState.EVADE:
 
                     Move(ArenaWidth / 2, ArenaHeight / 2);
+
                     if (!isNearWall)
                     {
                         Dodge();
@@ -124,48 +159,53 @@ public class Chh : Bot
 
 
                 default:
-
                     break;
             }
             Go();
         }
     }
 
+    /*
+     * ACTIONS
+     */
     private void Dodge()
     {
         double minDistance = Double.PositiveInfinity;
         double gunAngle = 0.0;
+        BotData nearestTarget = null;
+
         foreach (KeyValuePair<int, BotData> item in scannedBots)
         {
-            int key = item.Key;
             BotData bd = item.Value;
 
             double dist = DistanceTo(bd.X, bd.Y);
+
+            // Store the closest bot data
             if (dist < minDistance)
             {
                 minDistance = dist;
                 gunAngle = GunBearingTo(bd.X, bd.Y);
+                nearestTarget = bd;
             }
-            double bearingTo = BearingTo(bd.X, bd.Y);
 
+            // Detect enemy's "shot" and dodge accordingly
             if (bd.lastEnergy != -1 && bd.currentEnergy > 3 && bd.currentEnergy < bd.lastEnergy)
             {
-                // Console.WriteLine("ID {0} : energy decrease {1} -> {2}", bd.ID, bd.lastEnergy, bd.currentEnergy);
-                double rnd = Math.Sign(rand.NextDouble());
+                double bearingTo = BearingTo(bd.X, bd.Y);
                 var enemyBearing = Direction + bearingTo;
 
+                double rnd = Math.Sign(rand.NextDouble());
                 SetTurnLeft(NormalizeRelativeAngle(enemyBearing + 120 * rnd - Direction));
 
-
                 SetForward(rand.NextDouble() > 0.25 ? 100 : -100);
-
-            }
-            if (Math.Abs(gunAngle) < 30)
-            {
-                SmartFire(bd);
             }
         }
-        // Console.WriteLine(minDistance);
+
+        if (nearestTarget != null && Math.Abs(gunAngle) < 12)
+        {
+            SmartFire(nearestTarget);
+        }
+
         SetTurnGunLeft(gunAngle);
     }
 
@@ -202,6 +242,7 @@ public class Chh : Bot
         double powerFire = 0;
         double hitProbability = bd.shotCount > 0 ? (double)bd.hitCount / bd.shotCount : 1;
         double distanceFactor = (1.0 - hitProbability) * 200;
+
         if (distance < 200 - distanceFactor)
         {
             powerFire = 3;
@@ -210,7 +251,7 @@ public class Chh : Bot
         {
             powerFire = 2;
         }
-        else if (Energy > bd.currentEnergy + 1 || rand.NextDouble() < hitProbability)
+        else if ((distance < 800 && Energy > bd.currentEnergy + 1) || rand.NextDouble() < hitProbability)
         {
             powerFire = 1;
         }
@@ -218,10 +259,27 @@ public class Chh : Bot
         if (Energy > powerFire + 1)
         {
             SetFire(powerFire);
-            // Console.WriteLine($"{distance} => {powerFire}");
-            // Console.WriteLine($"Hit probability: {hitP}");
         }
     }
+    private void RotateRadar(double x, double y)
+    {
+        double radarbearing = RadarBearingTo(x, y);
+        double margin = 5;
+
+        if (radarbearing > 0)
+        {
+            SetTurnRadarLeft(radarbearing + margin);
+        }
+        else
+        {
+            SetTurnRadarRight(-radarbearing + margin);
+        }
+    }
+
+    /*
+     * EVENT HANDLING
+     */
+
     public override void OnBulletHit(BulletHitBotEvent evt)
     {
         if (scannedBots.TryGetValue(evt.VictimId, out var bdt))
@@ -229,18 +287,33 @@ public class Chh : Bot
             bdt.hitCount++;
             bdt.lastEnergy = bdt.currentEnergy;
             bdt.currentEnergy = evt.Energy;
-            scannedBots[bdt.ID] = bdt;
         }
     }
+
+    public override void OnBulletFired(BulletFiredEvent evt)
+    {
+        if (scannedBots.TryGetValue(targetId, out var bd))
+        {
+            bd.shotCount++;
+        }
+
+    }
+
+    public override void OnBotDeath(BotDeathEvent evt)
+    {
+        scannedBots.Remove(evt.VictimId);
+    }
+
     public override void OnScannedBot(ScannedBotEvent evt)
     {
-
-        var dist = DistanceTo(evt.X, evt.Y);
         if (hitCooldown == 0)
         {
+            var dist = DistanceTo(evt.X, evt.Y);
+
             if (dist < 200 || EnemyCount == 1)
             {
                 botState = BotState.BATTLE;
+
                 var bearing = BearingTo(evt.X, evt.Y);
                 var gunBearing = GunBearingTo(evt.X, evt.Y);
 
@@ -257,58 +330,28 @@ public class Chh : Bot
 
         }
 
-        BotData bd;
-        bd.ID = evt.ScannedBotId;
-        bd.currentEnergy = evt.Energy;
-        bd.X = evt.X;
-        bd.Y = evt.Y;
-
-        BotData lastBd;
-        if (scannedBots.TryGetValue(bd.ID, out lastBd))
+        // Update bot data
+        // or create new bot data
+        if (scannedBots.TryGetValue(evt.ScannedBotId, out BotData bd))
         {
-            bd.lastEnergy = lastBd.currentEnergy;
-            bd.hitCount = lastBd.hitCount;
-            bd.shotCount = lastBd.shotCount;
+            bd.lastEnergy = bd.currentEnergy;
+            bd.currentEnergy = evt.Energy;
         }
         else
         {
-            bd.lastEnergy = -1;
-            bd.hitCount = 0;
-            bd.shotCount = 0;
+            BotData newBd = new BotData(evt.ScannedBotId, -1, evt.Energy, evt.X, evt.Y, 0, 0);
+            scannedBots[evt.ScannedBotId] = newBd;
         }
-        scannedBots[evt.ScannedBotId] = bd;
+
         targetId = evt.ScannedBotId;
 
     }
 
-    private void RotateRadar(double x, double y)
+    public override void OnSkippedTurn(SkippedTurnEvent evt)
     {
-        double radarbearing = RadarBearingTo(x, y);
-        double margin = 5;
-        if (radarbearing > 0)
-        {
-            SetTurnRadarLeft(radarbearing + margin);
-        }
-        else
-        {
-            SetTurnRadarRight(-radarbearing + margin);
-        }
-    }
-    public override void OnBulletFired(BulletFiredEvent evt)
-    {
-        BotData bdt;
-        if (scannedBots.TryGetValue(targetId, out bdt))
-        {
-            bdt.shotCount++;
-            scannedBots[bdt.ID] = bdt;
-        }
-
+        // Console.WriteLine("SKIPPED");
     }
 
-    public override void OnBotDeath(BotDeathEvent evt)
-    {
-        scannedBots.Remove(evt.VictimId);
-    }
     public override void OnHitBot(HitBotEvent evt)
     {
         if (evt.VictimId != targetId && EnemyCount > 1)
