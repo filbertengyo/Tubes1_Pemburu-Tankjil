@@ -1,0 +1,11 @@
+{
+    "name": "«Pemburu Ta(n)kjil»",
+    "version": "1.0",
+    "authors": [ "«Filbert Engyo»"],
+    "description": "A tank that target the lowest hp's enemy while randomly moving",
+    "homepage": "«…»",
+    "countryCodes": [ "«id»" ],
+    "platform": "«.Net»",
+    "programmingLang": "C#"
+  }
+  
