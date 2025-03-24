@@ -94,11 +94,21 @@ public class Chh : Bot
         // Main loop
         while (IsRunning)
         {
+            Console.WriteLine(botState);
             // Decrement cooldowns
             if (stuckCooldown > 0) stuckCooldown--;
             if (hitCooldown > 0) hitCooldown--;
 
             bool isNearWall = (X < NEAR_WALL_OFFSET || X > ArenaWidth - NEAR_WALL_OFFSET || Y < NEAR_WALL_OFFSET || Y > ArenaHeight - NEAR_WALL_OFFSET);
+
+            // Console.WriteLine($"{TurnNumber} > {TurnNumber % 20}");
+            if (EnemyCount == 1 && TurnNumber % 30 <= 1)
+            {
+                // Console.WriteLine("BALIK");
+                ReverseDirection();
+                SetForward(0);
+                SetBack(0);
+            }
 
             SetTurnRadarRight(45);
             switch (botState)
@@ -108,18 +118,14 @@ public class Chh : Bot
                     if (isNearWall)
                     {
                         // Console.WriteLine("DEKET");
-                        if (stuckCooldown > 8)
+                        if (stuckCooldown > 0)
                         {
                             Move(centerX, centerY);
                         }
                         else
                         {
-                            ReverseDirection(rand.Next(6, 12));
+                            ReverseDirection(rand.Next(12, 24));
                         }
-                    }
-                    else
-                    {
-                        stuckCooldown = 0;
                     }
 
                     Rescan();
@@ -149,17 +155,19 @@ public class Chh : Bot
                     {
                         GreedyEvade();
                     }
-                    else
-                    {
-                        stuckCooldown = 0;
-                    }
+                    // else
+                    // {
+                    //     stuckCooldown = 0;
+                    // }
 
                     break;
 
                 case BotState.HIT:
-                    SetTurnRight(45);
-                    SetForward(0);
-                    SetBack(300);
+                    // Console.WriteLine(hitCooldown);
+                    // SetTurnRight(45);
+                    // SetForward(0);
+                    // SetBack(300);
+                    Move(centerX, centerY);
                     break;
 
 
@@ -188,21 +196,26 @@ public class Chh : Bot
 
             double dist = DistanceTo(bd.X, bd.Y);
 
-            // // Store the closest bot data
-            if (dist < minDistance)
+            // Detect energy drop
+            if (bd.lastEnergy != -1 && bd.currentEnergy > 3 && bd.currentEnergy < bd.lastEnergy)
             {
-                minDistance = dist;
-                // gunAngle = GunBearingTo(bd.X, bd.Y);
-                nearestBot = bd;
+                // Store the closest bot data
+                if (dist < minDistance)
+                {
+                    minDistance = dist;
+                    // gunAngle = GunBearingTo(bd.X, bd.Y);
+                    nearestBot = bd;
+                }
             }
 
             double hitProbability;
 
-            firePower = CalculatePowerFire(bd, out hitProbability);
+            var _firePower = CalculatePowerFire(bd, out hitProbability);
 
             // Console.WriteLine($"P{bd.ID}: {Math.Round(hitProbability, 4)}");
             if (hitProbability > maxProbability)
             {
+                firePower = _firePower;
                 maxProbability = hitProbability;
                 probableTarget = bd;
                 gunAngle = GunBearingTo(bd.X, bd.Y);
@@ -223,7 +236,7 @@ public class Chh : Bot
 
     private void Dodge(BotData nearestBot)
     {
-        if (nearestBot != null && nearestBot.lastEnergy != -1 && nearestBot.currentEnergy > 3 && nearestBot.currentEnergy < nearestBot.lastEnergy)
+        if (nearestBot != null)
         {
             double bearingTo = BearingTo(nearestBot.X, nearestBot.Y);
             var enemyBearing = Direction + bearingTo;
@@ -251,7 +264,7 @@ public class Chh : Bot
 
     }
 
-    private void ReverseDirection(int duration = 4)
+    private void ReverseDirection(int duration = 8)
     {
         if (stuckCooldown == 0)
         {
@@ -321,6 +334,12 @@ public class Chh : Bot
      * EVENT HANDLING
      */
 
+    public override void OnHitByBullet(HitByBulletEvent evt)
+    {
+        stuckCooldown = 0;
+        // botState = BotState.HIT;
+        // hitCooldown = 6;
+    }
     public override void OnBulletHit(BulletHitBotEvent evt)
     {
         if (scannedBots.TryGetValue(evt.VictimId, out var bdt))
