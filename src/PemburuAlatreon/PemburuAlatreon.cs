@@ -94,7 +94,7 @@ public class PemburuAlatreon : Bot{
                 }
                 SetForward(50);
             }
-            if (TurnNumber  - lastRadarScanTurn > 2){
+            if (TurnNumber - lastRadarScanTurn > 2){
                 SetTurnRadarLeft(360); 
             }else{
                 SetTurnRadarLeft(360); 
