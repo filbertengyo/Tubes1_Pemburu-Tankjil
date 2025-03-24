@@ -19,11 +19,15 @@ public class PemburuAlatreon : Bot{
         public double y;
         public double distance;
         public double lastScan;
+        public double energy;
     }
     // Dictionary untuk menyimpan informasi bot musuh
     private Dictionary<int, EnemyInfo> enemies = new Dictionary<int, EnemyInfo>();
     private Random randomMovement = new Random();
     private int movementDirection = 1;
+
+    private Dictionary<int, double> lastEnergyMap = new Dictionary<int, double>();
+
     public override void Run(){
         AdjustGunForBodyTurn = true; // Gun bebas dengan pergerakan body
         AdjustRadarForBodyTurn = true; // Radar bebas dengan pergerakan body
