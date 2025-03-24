@@ -45,7 +45,8 @@ public class PemburuAlatreon : Bot{
             if (target != null){// jika lagi target ke musuh
                 double enemyAngle = DirectionTo(target.x, target.y);
                 double distToEnemy = DistanceTo(target.x, target.y);
-
+                // Jika didapatkan jarak target ke bot < 60 diasumsikan bot target mendekat
+                // Sehingga bot alatreon akan menghindar dari bot target
                 if (distToEnemy < 60){
                     double dodgeAngle = normalizeAbsoluteAngle(enemyAngle + (randomMovement.Next(90, 181) * movementDirection));
                     double turnAngle = normalizeRelativeAngle(dodgeAngle - Direction);
@@ -105,7 +106,9 @@ public class PemburuAlatreon : Bot{
         }
 
         aimRadarandGun(targetBot);
-
+        // Melacak Energi terakhir dan Energi sekarang musuh.
+        // Jika terdapat pengurangan lebih dari 0.1 diasumsikan musuh menembak
+        // Sehingga bot akan melakukan dodge
         if (lastEnergyMap.TryGetValue(e.ScannedBotId, out double oldEnergy)){
             if (oldEnergy - e.Energy > 0.1){
                 double dodgeAngle = randomMovement.Next(-60, 61);
@@ -118,7 +121,7 @@ public class PemburuAlatreon : Bot{
             }
         }
         lastEnergyMap[e.ScannedBotId] = e.Energy;
-
+        // Tembak jika bearing kecil
         double gunbearing = GunBearingTo(targetBot.x, targetBot.y);
         if (Math.Abs(gunbearing) < 5){
             distanceFireGun(targetBot.distance);
