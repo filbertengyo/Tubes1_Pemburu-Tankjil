@@ -37,27 +37,44 @@ public class PemburuAlatreon : Bot{
 
             if (target != null){// jika lagi target ke musuh
                 double enemyAngle = DirectionTo(target.x, target.y);
-                double forwardDistance = 50;
-                if (target.distance < 150){
-                    forwardDistance = -150;
-                }else if (target.distance < 400){
-                    forwardDistance = 150;
-                }else{
-                    forwardDistance = 50;
-                }
-                double headingTo = normalizeAbsoluteAngle(enemyAngle + (90 * movementDirection));
-                double turnAngle = normalizeRelativeAngle(headingTo - Direction);
-                if (turnAngle > 0){
-                    SetTurnLeft(turnAngle);
-                }else{
-                    SetTurnRight(-turnAngle);
-                }
+                double distToEnemy = DistanceTo(target.x, target.y);
 
-                if (forwardDistance > 0){
-                    SetForward(forwardDistance);
+                if (distToEnemy < 60){
+                    double dodgeAngle = normalizeAbsoluteAngle(enemyAngle + (randomMovement.Next(90, 181) * movementDirection));
+                    double turnAngle = normalizeRelativeAngle(dodgeAngle - Direction);
+
+                    if (turnAngle > 0){
+                        SetTurnLeft(turnAngle);
+                    }else{
+                        SetTurnRight(-turnAngle);
+                    }
+                    SetBack(200);
                 }else{
-                    SetBack(-forwardDistance);
+                    double forwardDistance = 50;
+                    if (target.distance < 150){
+                        forwardDistance = -150;
+                    }else if (target.distance < 400){
+                        forwardDistance = 150;
+                    }else{
+                        forwardDistance = 50;
+                    }
+
+                    double headingTo = normalizeAbsoluteAngle(enemyAngle + (90 * movementDirection));
+                    double turnAngle = normalizeRelativeAngle(headingTo - Direction);
+
+                    if (turnAngle > 0){
+                        SetTurnLeft(turnAngle);
+                    }else{
+                        SetTurnRight(-turnAngle);
+                    }
+
+                    if (forwardDistance > 0){
+                        SetForward(forwardDistance);
+                    }else{
+                        SetBack(-forwardDistance);
+                    }
                 }
+                
             }else{// jika tidak ada musuh
                 int randomTurn = randomMovement.Next(-30, 31);
                 if (randomTurn > 0){
@@ -82,7 +99,7 @@ public class PemburuAlatreon : Bot{
 
         aimRadarandGun(targetBot);
         double gunbearing = GunBearingTo(targetBot.x, targetBot.y);
-        if (Math.Abs(gunbearing) < 10){
+        if (Math.Abs(gunbearing) < 5){
             distanceFireGun(targetBot.distance);
 
         }
@@ -90,9 +107,9 @@ public class PemburuAlatreon : Bot{
     }
 
     public override void OnHitBot(HitBotEvent e){
-        SetTurnRight(90);
-        SetBack(100);
-        Go();
+        double randomAngle = randomMovement.Next(90, 181);
+        TurnRight(randomAngle);
+        Back(150);
     }
 
     public virtual void OnHitByBullet(HitByBulletEvent e){
