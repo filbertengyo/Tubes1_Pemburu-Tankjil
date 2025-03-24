@@ -1,8 +1,8 @@
 {
     "name": "Chh",
-    "version": "1.0",
-    "authors": ["aaaaaa"],
-    "description": "Deskripsi strategi greedy yang digunakan",
+    "version": "1.1",
+    "authors": ["Fachriza Ahmad S"],
+    "description": "Tembak dengan probabilitas terbesar, hindari tembakan musuh terdekat.",
     "homepage": "",
     "countryCodes": [ "id" ],
     "platform": ".Net 9.0",
