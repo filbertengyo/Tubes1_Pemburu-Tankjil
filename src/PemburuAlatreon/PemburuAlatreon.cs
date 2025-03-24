@@ -35,6 +35,9 @@ public class PemburuAlatreon : Bot{
 
         /* Customize bot colors, read the documentation for more information */
         BodyColor = Color.Gray;
+        BulletColor = Color.Red;
+        TurretColor = Color.Blue;
+        GunColor = Color.Blue;
 
         while (IsRunning){
             var target = closestEnemy();
