@@ -105,6 +105,20 @@ public class PemburuAlatreon : Bot{
         }
 
         aimRadarandGun(targetBot);
+
+        if (lastEnergyMap.TryGetValue(e.ScannedBotId, out double oldEnergy)){
+            if (oldEnergy - e.Energy > 0.1){
+                double dodgeAngle = randomMovement.Next(-60, 61);
+                if (dodgeAngle > 0){
+                    SetTurnLeft(dodgeAngle);
+                }else{
+                    SetTurnRight(-dodgeAngle);
+                }
+                SetForward(80);
+            }
+        }
+        lastEnergyMap[e.ScannedBotId] = e.Energy;
+
         double gunbearing = GunBearingTo(targetBot.x, targetBot.y);
         if (Math.Abs(gunbearing) < 5){
             distanceFireGun(targetBot.distance);
@@ -145,7 +159,8 @@ public class PemburuAlatreon : Bot{
                 x = e.X,
                 y = e.Y,
                 distance = dist,
-                lastScan = TurnNumber
+                lastScan = TurnNumber,
+                energy = e.Energy
             };
         }else {
             var enemy = enemies[e.ScannedBotId];
@@ -153,6 +168,7 @@ public class PemburuAlatreon : Bot{
             enemy.y = e.Y;
             enemy.distance = dist;
             enemy.lastScan = TurnNumber;
+            enemy.energy = e.Energy;
         }
     }
 
