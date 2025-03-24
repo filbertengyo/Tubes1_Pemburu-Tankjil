@@ -1,10 +1,10 @@
 {
-  "name": "Pemburu Alatreon",
+  "name": "Pemburu Tankjil",
   "version": "1.0",
-  "authors": ["Muhammad Aulia Azka"],
+  "authors": ["M. Aulia Azka", "Fachriza Ahmad S", "Filbert Engyo"],
   "description": "A Mechanical Weapon that design to kill Alatreon",
   "homepage": "",
   "countryCodes": ["id"],
-  "platform": ".Net 6.0",
+  "platform": ".Net 9.0",
   "programmingLang": "C# 10.0"
 }

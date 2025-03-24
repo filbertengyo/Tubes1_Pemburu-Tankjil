@@ -1,7 +1,7 @@
 {
-    "name": "Chh",
+    "name": "Pemburu Tankjil",
     "version": "1.1",
-    "authors": ["Fachriza Ahmad S"],
+    "authors": ["M. Aulia Azka", "Fachriza Ahmad S", "Filbert Engyo"],
     "description": "Tembak dengan probabilitas terbesar, hindari tembakan musuh terdekat.",
     "homepage": "",
     "countryCodes": [ "id" ],

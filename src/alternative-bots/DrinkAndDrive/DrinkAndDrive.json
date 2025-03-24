@@ -1,11 +1,10 @@
 {
-    "name": "DrinkAndDrive",
+    "name": "Pemburu Tankjil",
     "version": "1.0",
-    "authors": [ "Filbert Engyo"],
+    "authors": ["M. Aulia Azka", "Fachriza Ahmad S", "Filbert Engyo"],
     "description": "A tank that target the lowest hp's enemy while randomly moving",
-    "homepage": "«…»",
+    "homepage": "",
     "countryCodes": [ "id" ],
-    "platform": ".Net",
+    "platform": ".Net 9.0",
     "programmingLang": "C#"
   }
-  
