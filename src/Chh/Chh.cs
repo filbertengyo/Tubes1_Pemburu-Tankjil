@@ -52,16 +52,10 @@ public class Chh : Bot
 
     }
 
-    struct sBotData
-    {
-        public int ID;
-        public double lastEnergy;
-        public double currentEnergy;
-        public double X;
-        public double Y;
-        public int hitCount;
-        public int shotCount;
-    }
+    private int centerX;
+    private int centerY;
+
+    const int NEAR_WALL_OFFSET = 60;
 
     Chh() : base(BotInfo.FromFile("Chh.json")) { }
 
@@ -85,6 +79,9 @@ public class Chh : Bot
         AdjustGunForBodyTurn = false;
         AdjustRadarForGunTurn = false;
 
+        centerX = ArenaWidth / 2;
+        centerY = ArenaHeight / 2;
+
         // Set colors
         TurretColor = Color.Black;
         ScanColor = Color.White;
@@ -101,7 +98,7 @@ public class Chh : Bot
             if (stuckCooldown > 0) stuckCooldown--;
             if (hitCooldown > 0) hitCooldown--;
 
-            bool isNearWall = (X < 30 || X > ArenaWidth - 30 || Y < 30 || Y > ArenaHeight - 30);
+            bool isNearWall = (X < NEAR_WALL_OFFSET || X > ArenaWidth - NEAR_WALL_OFFSET || Y < NEAR_WALL_OFFSET || Y > ArenaHeight - NEAR_WALL_OFFSET);
 
             SetTurnRadarRight(45);
             switch (botState)
@@ -110,7 +107,15 @@ public class Chh : Bot
 
                     if (isNearWall)
                     {
-                        ReverseDirection(rand.Next(6, 24));
+                        // Console.WriteLine("DEKET");
+                        if (stuckCooldown > 8)
+                        {
+                            Move(centerX, centerY);
+                        }
+                        else
+                        {
+                            ReverseDirection(rand.Next(6, 12));
+                        }
                     }
                     else
                     {
@@ -138,11 +143,11 @@ public class Chh : Bot
 
                 case BotState.EVADE:
 
-                    Move(ArenaWidth / 2, ArenaHeight / 2);
+                    Move(centerX, centerY);
 
                     if (!isNearWall)
                     {
-                        Dodge();
+                        GreedyEvade();
                     }
                     else
                     {
@@ -168,59 +173,79 @@ public class Chh : Bot
     /*
      * ACTIONS
      */
-    private void Dodge()
+    private void GreedyEvade()
     {
         double minDistance = Double.PositiveInfinity;
+        double maxProbability = -1.0;
         double gunAngle = 0.0;
-        BotData nearestTarget = null;
+        BotData nearestBot = null;
+        BotData probableTarget = null;
 
+        double firePower = 0;
         foreach (KeyValuePair<int, BotData> item in scannedBots)
         {
             BotData bd = item.Value;
 
             double dist = DistanceTo(bd.X, bd.Y);
 
-            // Store the closest bot data
+            // // Store the closest bot data
             if (dist < minDistance)
             {
                 minDistance = dist;
-                gunAngle = GunBearingTo(bd.X, bd.Y);
-                nearestTarget = bd;
+                // gunAngle = GunBearingTo(bd.X, bd.Y);
+                nearestBot = bd;
             }
 
-            // Detect enemy's "shot" and dodge accordingly
-            if (bd.lastEnergy != -1 && bd.currentEnergy > 3 && bd.currentEnergy < bd.lastEnergy)
+            double hitProbability;
+
+            firePower = CalculatePowerFire(bd, out hitProbability);
+
+            // Console.WriteLine($"P{bd.ID}: {Math.Round(hitProbability, 4)}");
+            if (hitProbability > maxProbability)
             {
-                double bearingTo = BearingTo(bd.X, bd.Y);
-                var enemyBearing = Direction + bearingTo;
-
-                double rnd = Math.Sign(rand.NextDouble());
-                SetTurnLeft(NormalizeRelativeAngle(enemyBearing + 120 * rnd - Direction));
-
-                SetForward(rand.NextDouble() > 0.25 ? 100 : -100);
+                maxProbability = hitProbability;
+                probableTarget = bd;
+                gunAngle = GunBearingTo(bd.X, bd.Y);
+                // Console.WriteLine($"Highest P{bd.ID}: {Math.Round(hitProbability, 4)}");
             }
+
         }
 
-        if (nearestTarget != null && Math.Abs(gunAngle) < 12)
+        if (probableTarget != null && Math.Abs(gunAngle) < 12)
         {
-            SmartFire(nearestTarget);
+            SmartFire(probableTarget, firePower);
         }
+
+        Dodge(nearestBot);
 
         SetTurnGunLeft(gunAngle);
+    }
+
+    private void Dodge(BotData nearestBot)
+    {
+        if (nearestBot != null && nearestBot.lastEnergy != -1 && nearestBot.currentEnergy > 3 && nearestBot.currentEnergy < nearestBot.lastEnergy)
+        {
+            double bearingTo = BearingTo(nearestBot.X, nearestBot.Y);
+            var enemyBearing = Direction + bearingTo;
+
+            double rnd = Math.Sign(rand.NextDouble());
+            SetTurnLeft(NormalizeRelativeAngle(enemyBearing + 90 * rnd - Direction));
+
+            SetForward(rand.NextDouble() > 0.25 ? 100 : -100);
+        }
     }
 
     private void Move(double X, double Y)
     {
         var angle = BearingTo(X, Y);
 
+        SetTurnLeft(angle);
         if (Math.Abs(angle) < 90)
         {
-            SetTurnLeft(angle);
             SetForward(50);
         }
         else
         {
-            SetTurnLeft(NormalizeRelativeAngle(180 - angle));
             SetBack(50);
         }
 
@@ -236,31 +261,47 @@ public class Chh : Bot
 
     }
 
-    private void SmartFire(BotData bd)
+    private double CalculatePowerFire(BotData bd, out double hitProbability)
     {
         double distance = DistanceTo(bd.X, bd.Y);
-        double powerFire = 0;
-        double hitProbability = bd.shotCount > 0 ? (double)bd.hitCount / bd.shotCount : 1;
+        hitProbability = bd.shotCount > 0 ? (double)bd.hitCount / bd.shotCount : 1;
         double distanceFactor = (1.0 - hitProbability) * 200;
 
+        double powerFire = 0;
+        // if ((distance < 200 - distanceFactor) || rand.NextDouble() * 3 < hitProbability)
         if (distance < 200 - distanceFactor)
         {
             powerFire = 3;
         }
+        // else if ((distance < 400 - distanceFactor) || rand.NextDouble() * 2 < hitProbability)
         else if (distance < 400 - distanceFactor)
         {
             powerFire = 2;
         }
-        else if ((distance < 800 && Energy > bd.currentEnergy + 1) || rand.NextDouble() < hitProbability)
+        else if ((distance < 800 && Energy > bd.currentEnergy + 1))//|| rand.NextDouble() < hitProbability)
         {
             powerFire = 1;
         }
 
-        if (Energy > powerFire + 1)
+        hitProbability = (hitProbability * powerFire) / (distance * distance);
+
+        return powerFire;
+
+    }
+
+    private void SmartFire(BotData bd, double firePower = -1.0)
+    {
+        if (firePower < 0)
         {
-            SetFire(powerFire);
+            firePower = CalculatePowerFire(bd, out _);
+        }
+
+        if (Energy > firePower + 1)
+        {
+            SetFire(firePower);
         }
     }
+
     private void RotateRadar(double x, double y)
     {
         double radarbearing = RadarBearingTo(x, y);
@@ -351,7 +392,7 @@ public class Chh : Bot
 
     public override void OnSkippedTurn(SkippedTurnEvent evt)
     {
-        // Console.WriteLine("SKIPPED");
+        Console.WriteLine("SKIPPED");
     }
 
     public override void OnHitBot(HitBotEvent evt)
