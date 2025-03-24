@@ -11,7 +11,7 @@ public class DrinkAndDrive : Bot
     {
         MOVEMENT,
         BATTLE,
-        ATTACK,
+        ESCAPE,
     }
 
     BotState botState = BotState.MOVEMENT;
@@ -99,19 +99,11 @@ public class DrinkAndDrive : Bot
 
                     if (isNearWall)
                     {
-                        if (stuckCooldown > 8)
-                        {
-                            Move(centerX, centerY);
-                        }
-                        else
-                        {
-                            RunAway(rand.Next(6, 12));
-                        }
+                        if (stuckCooldown > 8) Move(centerX, centerY);
+                        else RunAway(rand.Next(6, 12));
                     }
-                    else
-                    {
-                        stuckCooldown = 0;
-                    }
+                    else stuckCooldown = 0;
+
 
                     Rescan();
 
@@ -136,18 +128,12 @@ public class DrinkAndDrive : Bot
 
                     Move(centerX, centerY);
 
-                    if (!isNearWall)
-                    {
-                        LockTarget();
-                    }
-                    else
-                    {
-                        stuckCooldown = 0;
-                    }
-
+                    if (!isNearWall) LockTarget();
+                    else stuckCooldown = 0;
+                    
                     break;
 
-                case BotState.ATTACK:
+                case BotState.ESCAPE:
                     SetTurnRight(45);
                     SetForward(0);
                     SetBack(300);
@@ -200,16 +186,9 @@ public class DrinkAndDrive : Bot
     private void Move(double X, double Y)
     {
         var angle = BearingTo(X, Y);
-
         SetTurnLeft(angle);
-        if (Math.Abs(angle) < 90)
-        {
-            SetForward(50);
-        }
-        else
-        {
-            SetBack(50);
-        }
+        if (Math.Abs(angle) < 90) SetForward(50);
+        else SetBack(50);
     }
 
     private void RunAway(int duration = 4)
@@ -228,35 +207,18 @@ public class DrinkAndDrive : Bot
         double distanceFactor = (1.0 - hitProbability) * 200;
 
         double powerFire = 0;
-        if (distance < 200 - distanceFactor)
-        {
-            powerFire = 3;
-        }
-        else if (distance < 400 - distanceFactor)
-        {
-            powerFire = 2;
-        }
-        else if ((distance < 800 && Energy > bd.currentEnergy + 1))
-        {
-            powerFire = 1;
-        }
+        if (distance < 200 - distanceFactor) powerFire = 3;
+        else if (distance < 400 - distanceFactor) powerFire = 2;
+        else if ((distance < 800 && Energy > bd.currentEnergy + 1))powerFire = 1;
 
         hitProbability = (hitProbability * powerFire) / (distance * distance);
-
         return powerFire;
     }
 
     private void SmartFire(BotData bd, double firePower = -1.0)
     {
-        if (firePower < 0)
-        {
-            firePower = CalculatePowerFire(bd, out _);
-        }
-
-        if (Energy > firePower + 1)
-        {
-            SetFire(firePower);
-        }
+        if (firePower < 0) firePower = CalculatePowerFire(bd, out _);
+        if (Energy > firePower + 1) SetFire(firePower);
     }
 
     private void RotateRadar(double x, double y)
@@ -264,14 +226,8 @@ public class DrinkAndDrive : Bot
         double radarbearing = RadarBearingTo(x, y);
         double margin = 5;
 
-        if (radarbearing > 0)
-        {
-            SetTurnRadarLeft(radarbearing + margin);
-        }
-        else
-        {
-            SetTurnRadarRight(-radarbearing + margin);
-        }
+        if (radarbearing > 0) SetTurnRadarLeft(radarbearing + margin);
+        else SetTurnRadarRight(-radarbearing + margin);
     }
 
     public override void OnBulletHit(BulletHitBotEvent evt)
@@ -315,7 +271,8 @@ public class DrinkAndDrive : Bot
 
                 RotateRadar(evt.X, evt.Y);
             }
-            else {
+            else 
+            {
                 SetTurnRight(0);
                 botState = BotState.MOVEMENT;
             }
@@ -341,7 +298,7 @@ public class DrinkAndDrive : Bot
     {
         if (evt.VictimId != targetId && EnemyCount > 1)
         {
-            botState = BotState.ATTACK;
+            botState = BotState.ESCAPE;
             hitCooldown = 6;
             RotateRadar(evt.X, evt.Y);
         }
