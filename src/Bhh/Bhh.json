@@ -1,0 +1,10 @@
+{
+    "name": "Bhh",
+    "version": "1.0",
+    "authors": ["aaaaaa"],
+    "description": "Deskripsi strategi greedy yang digunakan",
+    "homepage": "",
+    "countryCodes": [ "id" ],
+    "platform": ".Net 8.0",
+    "programmingLang": "C#"
+  }
