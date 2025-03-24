@@ -9,12 +9,12 @@ public class DrinkAndDrive : Bot
 {
     public enum BotState
     {
-        EVADE,
+        MOVEMENT,
         BATTLE,
-        HIT,
+        ATTACK,
     }
 
-    BotState botState = BotState.EVADE;
+    BotState botState = BotState.MOVEMENT;
 
     Random rand = new Random();
     private Dictionary<int, BotData> scannedBots = new();
@@ -70,7 +70,6 @@ public class DrinkAndDrive : Bot
 
     public override void Run()
     {
-        // Set properties
         AdjustRadarForBodyTurn = false;
         AdjustGunForBodyTurn = false;
         AdjustRadarForGunTurn = false;
@@ -78,7 +77,6 @@ public class DrinkAndDrive : Bot
         centerX = ArenaWidth / 2;
         centerY = ArenaHeight / 2;
 
-        // Set colors
         BodyColor = Color.FromArgb(20, 61, 96);
         TurretColor = Color.FromArgb(235, 91, 0);
         RadarColor = Color.FromArgb(38, 31, 79);
@@ -87,10 +85,8 @@ public class DrinkAndDrive : Bot
         TracksColor = Color.FromArgb(25, 91, 0);
         GunColor = Color.FromArgb(20, 61, 96);
 
-        // Main loop
         while (IsRunning)
         {
-            // Decrement cooldowns
             if (stuckCooldown > 0) stuckCooldown--;
             if (hitCooldown > 0) hitCooldown--;
 
@@ -136,13 +132,13 @@ public class DrinkAndDrive : Bot
                     }
                     break;
 
-                case BotState.EVADE:
+                case BotState.MOVEMENT:
 
                     Move(centerX, centerY);
 
                     if (!isNearWall)
                     {
-                        GreedyEvade();
+                        LockTarget();
                     }
                     else
                     {
@@ -151,7 +147,7 @@ public class DrinkAndDrive : Bot
 
                     break;
 
-                case BotState.HIT:
+                case BotState.ATTACK:
                     SetTurnRight(45);
                     SetForward(0);
                     SetBack(300);
@@ -164,10 +160,7 @@ public class DrinkAndDrive : Bot
         }
     }
 
-    /*
-     * ACTIONS
-     */
-    private void GreedyEvade()
+    private void LockTarget()
     {
         double minEnergy = Double.PositiveInfinity;
         BotData lowestHPBot = null;
@@ -176,7 +169,6 @@ public class DrinkAndDrive : Bot
         {
             BotData bd = item.Value;
 
-            // Select bot with the lowest energy (HP)
             if (bd.currentEnergy < minEnergy)
             {
                 minEnergy = bd.currentEnergy;
@@ -184,7 +176,6 @@ public class DrinkAndDrive : Bot
             }
         }
 
-        // Set target to lowest energy (HP) bot for continuous attack or evasion
         if (lowestHPBot != null)
         {
             targetId = lowestHPBot.ID;
@@ -282,7 +273,7 @@ public class DrinkAndDrive : Bot
             SetTurnRadarRight(-radarbearing + margin);
         }
     }
-    
+
     public override void OnBulletHit(BulletHitBotEvent evt)
     {
         if (scannedBots.TryGetValue(evt.VictimId, out var bdt))
@@ -326,7 +317,7 @@ public class DrinkAndDrive : Bot
             }
             else {
                 SetTurnRight(0);
-                botState = BotState.EVADE;
+                botState = BotState.MOVEMENT;
             }
         }
 
@@ -350,7 +341,7 @@ public class DrinkAndDrive : Bot
     {
         if (evt.VictimId != targetId && EnemyCount > 1)
         {
-            botState = BotState.HIT;
+            botState = BotState.ATTACK;
             hitCooldown = 6;
             RotateRadar(evt.X, evt.Y);
         }
