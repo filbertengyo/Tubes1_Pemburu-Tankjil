@@ -1,0 +1,10 @@
+{
+  "name": "Pemburu Alatreon",
+  "version": "1.0",
+  "authors": ["Muhammad Aulia Azka"],
+  "description": "A Mechanical Weapon that design to kill Alatreon",
+  "homepage": "",
+  "countryCodes": ["id"],
+  "platform": ".Net 6.0",
+  "programmingLang": "C# 10.0"
+}
