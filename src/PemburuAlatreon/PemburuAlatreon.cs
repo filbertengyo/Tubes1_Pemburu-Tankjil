@@ -28,6 +28,8 @@ public class PemburuAlatreon : Bot{
 
     private Dictionary<int, double> lastEnergyMap = new Dictionary<int, double>();
 
+    private int lastRadarScanTurn = 0;
+
     public override void Run(){
         AdjustGunForBodyTurn = true; // Gun bebas dengan pergerakan body
         AdjustRadarForBodyTurn = true; // Radar bebas dengan pergerakan body
@@ -92,12 +94,18 @@ public class PemburuAlatreon : Bot{
                 }
                 SetForward(50);
             }
-            SetTurnRadarLeft(360); 
+            if (TurnNumber > - lastRadarScanTurn > 2){
+                SetTurnRadarLeft(360); 
+            }else{
+                SetTurnRadarLeft(360); 
+            }
+            
             Go();
         }
     }
 
     public override void OnScannedBot(ScannedBotEvent e){
+        lastRadarScanTurn = TurnNumber;
         UpdateEnemyInfo(e);
 
         var targetBot = closestEnemy();
